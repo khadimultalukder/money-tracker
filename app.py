@@ -457,8 +457,13 @@ textarea {{font-size:1rem !important; line-height:1.55 !important;}}
 div[data-testid="stForm"] {{background:{CARD}; border:1px solid {BORDER}; border-radius:20px;
     padding:1.6rem; box-shadow:0 2px 10px rgba(11,31,23,.04);}}
 .stats {{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin:.6rem 0 .4rem;}}
-.stats > div {{background:{CARD}; border:1px solid {BORDER}; border-radius:16px; padding:14px 18px;
-    box-shadow:0 2px 10px rgba(11,31,23,.04);}}
+/* glass cards (সব খরচ page) */
+.stats > div, .st-key-filterbox, .st-key-daytable {{
+    background:linear-gradient(135deg, rgba(255,255,255,.72), rgba(255,255,255,.38)) !important;
+    backdrop-filter:blur(16px) saturate(170%); -webkit-backdrop-filter:blur(16px) saturate(170%);
+    border:1px solid rgba(255,255,255,.75) !important;
+    box-shadow:0 8px 32px rgba(6,78,59,.08), inset 0 1px 0 rgba(255,255,255,.9) !important;}}
+.stats > div {{border-radius:16px; padding:14px 18px;}}
 .stats .l {{font-size:.72rem; color:{MUTED}; text-transform:uppercase; letter-spacing:.08em;}}
 .stats .v {{font-size:1.25rem; font-weight:800; margin-top:4px; white-space:nowrap;
     overflow:hidden; text-overflow:ellipsis;}}
@@ -474,14 +479,12 @@ div[class*="st-key-day_dlg"] button[kind="tertiary"] {{color:{MUTED}; font-size:
     border-radius:10px; padding:4px 8px;}}
 div[class*="st-key-day_dlg"] button[kind="tertiary"]:hover {{background:{MINT}; color:{GREEN};}}
 div[data-testid="stDialog"] div[role="dialog"] {{border-radius:20px;}}
-.st-key-filterbox {{background:{CARD}; border:1px solid {BORDER} !important; border-radius:18px !important;
-    box-shadow:0 2px 10px rgba(11,31,23,.04); padding:14px 18px 6px !important;}}
+.st-key-filterbox {{border-radius:18px !important; padding:16px 20px 20px !important;}}
 .st-key-filterbox label p {{font-size:.72rem !important; font-weight:700; color:{MUTED};
     text-transform:uppercase; letter-spacing:.08em;}}
 .st-key-filterbox div[data-baseweb="input"], .st-key-filterbox div[data-baseweb="select"] > div {{
-    background:#F4F8F5 !important; border:1px solid {BORDER} !important;}}
-.st-key-daytable {{background:{CARD}; border:1px solid {BORDER} !important; border-radius:18px !important;
-    box-shadow:0 2px 10px rgba(11,31,23,.04); padding:8px !important;}}
+    background:rgba(255,255,255,.6) !important; border:1px solid rgba(6,78,59,.10) !important;}}
+.st-key-daytable {{border-radius:18px !important; padding:8px !important;}}
 .st-key-daytable div[data-testid="stDataFrame"] {{border:none; border-radius:12px; overflow:hidden;}}
 .detail {{display:flex; align-items:center; gap:16px; padding:6px 0 16px;}}
 .detail .grow {{flex:1; min-width:0;}}
