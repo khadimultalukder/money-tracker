@@ -500,19 +500,106 @@ div[data-testid="stDialog"] div[role="dialog"] {{border-radius:20px;}}
 .facts b {{display:block; margin-top:3px; font-size:.9rem;}}
 div[data-testid="stDataFrame"], div[data-testid="stDataEditor"] {{border-radius:14px; overflow:hidden;
     border:1px solid {BORDER};}}
+/* active nav tab (Streamlit 1.65 uses aria-checked) */
+div[data-testid="stButtonGroup"] button[aria-checked="true"]
+{{background:{GREEN} !important; color:#fff !important; box-shadow:0 4px 12px rgba(5,150,105,.30);}}
+div[data-testid="stButtonGroup"] button[aria-checked="true"] * {{color:#fff !important;}}
+div[data-testid="stButtonGroup"] button p {{display:flex; align-items:center; gap:6px; white-space:nowrap;}}
+div[data-testid="stButtonGroup"] button [data-testid="stIconMaterial"] {{font-size:1.1rem;}}
+
+/* ============================== MOBILE (phone) ============================== */
+@media (max-width: 640px) {{
+  .block-container {{padding: .9rem .9rem calc(6.2rem + env(safe-area-inset-bottom)) !important;}}
+  .navgap {{height: 0;}}
+  .brand {{font-size:1.05rem;}}
+
+  /* bottom tab bar, app style */
+  div[data-testid="stButtonGroup"] {{position:fixed; left:0; right:0; bottom:0; z-index:1000;
+      padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+      background:rgba(255,255,255,.86); backdrop-filter:blur(18px) saturate(180%);
+      -webkit-backdrop-filter:blur(18px) saturate(180%);
+      border-top:1px solid {BORDER}; box-shadow:0 -8px 28px rgba(6,78,59,.08);}}
+  div[data-testid="stButtonGroup"] > div {{width:100%; display:grid !important;
+      grid-template-columns:repeat(4, 1fr); gap:4px; background:transparent; border:none;
+      box-shadow:none; padding:0; overflow:visible;}}
+  div[data-testid="stButtonGroup"] button {{padding:6px 2px !important; min-height:54px; width:100%;
+      border-radius:14px !important;}}
+  div[data-testid="stButtonGroup"] button span[data-has-shortcut] {{display:flex; flex-direction:column;
+      align-items:center; gap:3px;}}
+  div[data-testid="stButtonGroup"] button span[data-has-shortcut] > span {{margin:0 !important;}}
+  div[data-testid="stButtonGroup"] button p {{font-size:.7rem; line-height:1.2; font-weight:600;}}
+  div[data-testid="stButtonGroup"] button [data-testid="stIconMaterial"] {{font-size:1.45rem;}}
+  div[data-testid="stButtonGroup"] button[aria-checked="true"] {{background:{MINT} !important;
+      box-shadow:none !important;}}
+  div[data-testid="stButtonGroup"] button[aria-checked="true"] * {{color:{GREEN} !important;}}
+
+  h1 {{font-size:1.45rem !important;}}
+  .pagehead {{font-size:1.2rem;}}
+  h3 {{padding-top:.8rem !important;}}
+
+  /* hero */
+  .hero {{padding:18px 18px; border-radius:20px; gap:14px;}}
+  .hero .big {{font-size:2.05rem;}}
+  .hero .lbl {{font-size:.72rem;}}
+  .mini {{width:100%; display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;}}
+  .mini > div {{min-width:0; padding:10px 10px; border-radius:12px;}}
+  .mini .l {{font-size:.62rem; letter-spacing:.04em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}}
+  .mini .v {{font-size:.95rem !important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}}
+
+  /* panels / rows */
+  .panel {{padding:4px 14px; border-radius:16px;}}
+  .row {{gap:10px; padding:11px 0; font-size:.88rem;}}
+  .ico {{width:36px; height:36px; border-radius:10px; font-size:1rem;}}
+
+  /* সব খরচ */
+  .stats {{grid-template-columns:repeat(2, 1fr); gap:10px;}}
+  .stats > div {{padding:12px 14px;}}
+  .stats .v {{font-size:1.15rem;}}
+  .st-key-filterbox {{padding:14px 14px 16px !important;}}
+  /* filters: date + search full width, category & payment side by side */
+  .st-key-filterbox div[data-testid="stHorizontalBlock"] {{flex-wrap:wrap !important; gap:.6rem !important;}}
+  .st-key-filterbox div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {{
+      min-width:calc(50% - .3rem) !important; flex:1 1 calc(50% - .3rem) !important; width:auto !important;}}
+  .st-key-filterbox div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:nth-child(1),
+  .st-key-filterbox div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:nth-child(4) {{
+      min-width:100% !important; flex-basis:100% !important;}}
+  .st-key-daytable {{padding:4px !important;}}
+
+  /* forms */
+  div[data-testid="stForm"] {{padding:1.1rem; border-radius:18px;}}
+  input, textarea {{font-size:16px !important;}}   /* stops iOS zoom on focus */
+
+  /* day dialog: keep each transaction row on one line */
+  div[data-testid="stDialog"] div[role="dialog"] {{width:100vw !important; max-width:100vw !important;
+      margin:0 !important; border-radius:20px 20px 0 0;}}
+  div[class*="st-key-day_dlg"] {{padding:4px 10px !important;}}
+  div[class*="st-key-day_dlg"] div[data-testid="stHorizontalBlock"]:has(button[kind="tertiary"]) {{
+      flex-wrap:nowrap !important; gap:2px !important;}}
+  div[class*="st-key-day_dlg"] div[data-testid="stHorizontalBlock"]:has(button[kind="tertiary"]) > div[data-testid="stColumn"] {{
+      min-width:0 !important; width:auto !important; flex:0 0 auto !important;}}
+  div[class*="st-key-day_dlg"] div[data-testid="stHorizontalBlock"]:has(button[kind="tertiary"]) > div[data-testid="stColumn"]:first-child {{
+      flex:1 1 auto !important;}}
+  div[class*="st-key-day_dlg"] button[kind="tertiary"] {{padding:4px 6px;}}
+}}
 </style>
 """, unsafe_allow_html=True)
 
 PAGES = ["Dashboard", "Add expense", "Expenses", "Settings"]
-PAGE_LABELS = {"Dashboard": "ড্যাশবোর্ড", "Add expense": "খরচ যোগ করুন",
-               "Expenses": "সব খরচ", "Settings": "সেটিংস"}
+PAGE_LABELS = {"Dashboard": ":material/space_dashboard: ড্যাশবোর্ড",
+               "Add expense": ":material/add_circle: খরচ যোগ",
+               "Expenses": ":material/receipt_long: সব খরচ",
+               "Settings": ":material/settings: সেটিংস"}
 n1, n2 = st.columns([1, 2], vertical_alignment="center")
 n1.markdown(f'<div class="brand"><div class="logo">৳</div>{APP_NAME}'
             f'<span class="src">{"☁️ Supabase" if USE_SUPABASE else "💾 লোকাল"}</span></div>',
             unsafe_allow_html=True)
+# tapping the already-open tab would deselect it -> keep the last page selected
+if st.session_state.get("page") is None and st.session_state.get("last_page"):
+    st.session_state["page"] = st.session_state["last_page"]
 page = n2.segmented_control("nav", PAGES, default="Dashboard", key="page",
                             format_func=lambda p: PAGE_LABELS.get(p, p),
                             label_visibility="collapsed") or "Dashboard"
+st.session_state["last_page"] = page
 st.markdown('<div class="navgap"></div>', unsafe_allow_html=True)
 
 
@@ -539,10 +626,12 @@ def dashboard():
         months.insert(0, today.to_period("M"))
 
     st.markdown("""<style>
+    @media (min-width: 641px) {
     [data-testid="stMain"], [data-testid="stAppViewContainer"], .stApp {overflow: hidden !important;}
     .block-container {padding-top: 1.2rem !important; padding-bottom: 0 !important;}
     .fill {height: calc(100vh - 400px); min-height: 160px; overflow-y: auto;}
     .fill::-webkit-scrollbar {width: 6px;} .fill::-webkit-scrollbar-thumb {background:#D5DED8; border-radius:6px;}
+    }
     </style>""", unsafe_allow_html=True)
 
     h1, h2 = st.columns([3, 1], vertical_alignment="center")
@@ -791,7 +880,7 @@ def all_expenses():
         return
 
     view = pd.DataFrame({
-        "তারিখ": days["date"].map(bn_date),
+        "তারিখ": days["date"].map(lambda d: bn_date(d, year=d.year != bd_today().year)),
         "বার": days["date"].map(bn_day),
         "এন্ট্রি": days["entries"],
         "পরিমাণ": days["total"],
@@ -801,10 +890,10 @@ def all_expenses():
         on_select="rerun", selection_mode="single-cell",
         key=f"day_table_{st.session_state.get('tbl_v', 0)}",
         column_config={
-            "তারিখ": st.column_config.TextColumn(width="medium"),
-            "বার": st.column_config.TextColumn(width="medium"),
-            "এন্ট্রি": st.column_config.NumberColumn(width="small"),
-            "পরিমাণ": st.column_config.NumberColumn(format="৳ %,.0f", width="medium"),
+            "তারিখ": st.column_config.TextColumn(width=105),
+            "বার": st.column_config.TextColumn(width=95),
+            "এন্ট্রি": st.column_config.NumberColumn(width=52),
+            "পরিমাণ": st.column_config.NumberColumn(format="৳ %,.0f", width=85),
         })
 
     sel = event.selection
