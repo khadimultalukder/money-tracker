@@ -47,7 +47,7 @@ def bd_today():
     return datetime.now(TZ).date()
 USE_SUPABASE = bool(SUPABASE_URL and SUPABASE_KEY)
 CURRENCY = "৳"
-APP_NAME = "Money Tracker"   # <- app er naam bodlate shudhu eta bodlao
+APP_NAME = "খরচের হিসাব"   # <- app er naam bodlate shudhu eta bodlao
 
 DEFAULT_CATEGORIES = [
     "বাজার", "খাবার / রেস্টুরেন্ট", "যাতায়াত", "বাইক / গাড়ি", "বাসা ভাড়া",
@@ -307,6 +307,24 @@ def tk(x):
     return f"{CURRENCY}{x:,.0f}"
 
 
+BN_MONTHS = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই",
+             "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"]
+BN_DAYS = ["সোমবার", "মঙ্গলবার", "বুধবার", "বৃহস্পতিবার", "শুক্রবার", "শনিবার", "রবিবার"]
+
+
+def bn_month(d):
+    """'অক্টোবর 2026' — works for date, Timestamp and Period."""
+    return f"{BN_MONTHS[d.month - 1]} {d.year}"
+
+
+def bn_date(d, year=True):
+    return f"{d.day:02d} {BN_MONTHS[d.month - 1]}" + (f" {d.year}" if year else "")
+
+
+def bn_day(d):
+    return BN_DAYS[d.weekday()]
+
+
 # ---------------------------------------------------------------- styling
 st.set_page_config(page_title=APP_NAME, page_icon="●", layout="wide",
                    initial_sidebar_state="collapsed")
@@ -324,17 +342,17 @@ def login_gate():
                 'place-items:center;color:#fff;font-size:1.6rem;font-weight:700;'
                 'background:linear-gradient(135deg,#064E3B,#059669)">৳</div>'
                 f'<div style="font-size:1.4rem;font-weight:800">{APP_NAME}</div>'
-                '<div style="color:#6B7C74;font-size:.9rem">Password diye login koro</div></div>',
+                '<div style="color:#6B7C74;font-size:.9rem">পাসওয়ার্ড দিয়ে লগইন করুন</div></div>',
                 unsafe_allow_html=True)
     with st.form("login"):
-        pw = st.text_input("Password", type="password", label_visibility="collapsed",
-                           placeholder="Password")
-        ok = st.form_submit_button("Login", type="primary", width="stretch")
+        pw = st.text_input("পাসওয়ার্ড", type="password", label_visibility="collapsed",
+                           placeholder="পাসওয়ার্ড")
+        ok = st.form_submit_button("লগইন", type="primary", width="stretch")
     if ok:
         if hmac.compare_digest(pw.encode(), APP_PASSWORD.encode()):
             st.session_state["authed"] = True
             st.rerun()
-        st.error("Password bhul.")
+        st.error("পাসওয়ার্ড ভুল।")
     st.stop()
 
 
@@ -343,9 +361,9 @@ login_gate()
 try:
     init_backend()
 except Exception as e:  # connection problems -> friendly message instead of a traceback
-    st.error("**Database e connect kora jacche na.**  \n"
-             + ("`.env` er SUPABASE_URL / SUPABASE_KEY check koro, ar internet connection ache kina dekho."
-                if USE_SUPABASE else "expenses.db file ta check koro."))
+    st.error("**ডাটাবেসে কানেক্ট করা যাচ্ছে না।**  \n"
+             + ("`.env` ফাইলের SUPABASE_URL / SUPABASE_KEY চেক করুন, আর ইন্টারনেট কানেকশন আছে কিনা দেখুন।"
+                if USE_SUPABASE else "expenses.db ফাইলটা চেক করুন।"))
     st.caption(f"{type(e).__name__}: {e}")
     st.stop()
 
@@ -486,7 +504,7 @@ PAGE_LABELS = {"Dashboard": "ড্যাশবোর্ড", "Add expense": "�
                "Expenses": "সব খরচ", "Settings": "সেটিংস"}
 n1, n2 = st.columns([1, 2], vertical_alignment="center")
 n1.markdown(f'<div class="brand"><div class="logo">৳</div>{APP_NAME}'
-            f'<span class="src">{"☁️ Supabase" if USE_SUPABASE else "💾 Local"}</span></div>',
+            f'<span class="src">{"☁️ Supabase" if USE_SUPABASE else "💾 লোকাল"}</span></div>',
             unsafe_allow_html=True)
 page = n2.segmented_control("nav", PAGES, default="Dashboard", key="page",
                             format_func=lambda p: PAGE_LABELS.get(p, p),
@@ -496,14 +514,14 @@ st.markdown('<div class="navgap"></div>', unsafe_allow_html=True)
 
 def panel(html, fill=False):
     st.markdown(f'<div class="panel{" fill" if fill else ""}">'
-                f'{html or "<div class=empty>No data</div>"}</div>', unsafe_allow_html=True)
+                f'{html or "<div class=empty>কোনো তথ্য নেই</div>"}</div>', unsafe_allow_html=True)
 
 
 def tx_rows(frame):
     return "".join(
         f'<div class="row"><div class="ico">{CAT_ICON.get(r.category, "•")}</div>'
         f'<div class="grow"><div class="t">{r.description or r.category}</div>'
-        f'<div class="d">{r.date:%d %b} · {r.category} · {r.payment_method}</div></div>'
+        f'<div class="d">{bn_date(r.date, year=False)} · {r.category} · {r.payment_method}</div></div>'
         f'<div class="amt">{tk(r.amount)}</div></div>' for r in frame.itertuples())
 
 
@@ -524,8 +542,8 @@ def dashboard():
     </style>""", unsafe_allow_html=True)
 
     h1, h2 = st.columns([3, 1], vertical_alignment="center")
-    h1.markdown(f'<div class="pagehead">Overview</div>', unsafe_allow_html=True)
-    sel = h2.selectbox("Month", months, format_func=lambda p: p.strftime("%B %Y"),
+    h1.markdown(f'<div class="pagehead">সারসংক্ষেপ</div>', unsafe_allow_html=True)
+    sel = h2.selectbox("মাস", months, format_func=bn_month,
                        label_visibility="collapsed")
 
     mdf, prev = df[df["period"] == sel], df[df["period"] == sel - 1]
@@ -534,22 +552,22 @@ def dashboard():
 
     if p_total:
         pct = (m_total - p_total) / p_total * 100
-        chip = f'{"▲" if pct > 0 else "▼"} {abs(pct):.0f}% vs last month'
+        chip = f'{"▲" if pct > 0 else "▼"} গত মাসের চেয়ে {abs(pct):.0f}% {"বেশি" if pct > 0 else "কম"}'
     else:
-        chip = f"{len(mdf)} transactions"
+        chip = f"{len(mdf)}টি লেনদেন"
     today_amt = df.loc[df["date"] == today, "amount"].sum()
 
     st.markdown(f"""
     <div class="hero">
       <div style="z-index:1">
-        <div class="lbl">{sel.strftime("%B %Y")} · Total spent</div>
+        <div class="lbl">{bn_month(sel)} · মোট খরচ</div>
         <div class="big">{tk(m_total)}</div>
         <div class="chip">{chip}</div>
       </div>
       <div class="mini">
-        <div><div class="l">Today</div><div class="v">{tk(today_amt)}</div></div>
-        <div><div class="l">Daily avg</div><div class="v">{tk(m_total / max(days, 1))}</div></div>
-        <div><div class="l">Last month</div><div class="v">{tk(p_total)}</div></div>
+        <div><div class="l">আজ</div><div class="v">{tk(today_amt)}</div></div>
+        <div><div class="l">দৈনিক গড়</div><div class="v">{tk(m_total / max(days, 1))}</div></div>
+        <div><div class="l">গত মাস</div><div class="v">{tk(p_total)}</div></div>
       </div>
     </div>""", unsafe_allow_html=True)
 
@@ -559,7 +577,7 @@ def dashboard():
 
     left, right = st.columns(2, gap="large")
     with left:
-        st.subheader("By category")
+        st.subheader("ক্যাটাগরি অনুযায়ী")
         cat = mdf.groupby("category")["amount"].sum().sort_values(ascending=False)
         rows = ""
         for name, amt in cat.items():
@@ -578,29 +596,29 @@ def dashboard():
         panel(rows, fill=True)
 
     with right:
-        st.subheader("Recent")
+        st.subheader("সাম্প্রতিক")
         panel(tx_rows(mdf.head(20)), fill=True)
 
 
 # ---------------------------------------------------------------- add
 def add_expense():
-    st.title("Add expense")
+    st.title("খরচ যোগ করুন")
     with st.form("add", clear_on_submit=True):
         c1, c2 = st.columns(2)
-        amt = c1.number_input(f"Amount ({CURRENCY})", min_value=0.0, step=10.0, format="%.0f")
-        d = c2.date_input("Date", bd_today())
-        cat = c1.selectbox("Category", categories(), format_func=lambda n: f"{CAT_ICON.get(n, '•')}  {n}")
+        amt = c1.number_input(f"পরিমাণ ({CURRENCY})", min_value=0.0, step=10.0, format="%.0f")
+        d = c2.date_input("তারিখ", bd_today())
+        cat = c1.selectbox("ক্যাটাগরি", categories(), format_func=lambda n: f"{CAT_ICON.get(n, '•')}  {n}")
         pms = payments()
-        pm = c2.selectbox("Payment method", pms, index=pms.index("ক্যাশ") if "ক্যাশ" in pms else 0)
-        desc = st.text_area("Description", placeholder="e.g. Mach 1kg, Vegetable, Bike oil", height=130)
-        if st.form_submit_button("Save expense", type="primary", width="stretch"):
+        pm = c2.selectbox("পেমেন্ট মাধ্যম", pms, index=pms.index("ক্যাশ") if "ক্যাশ" in pms else 0)
+        desc = st.text_area("বিবরণ", placeholder="যেমন: মাছ ১ কেজি, সবজি, বাইকের তেল", height=130)
+        if st.form_submit_button("খরচ সেভ করুন", type="primary", width="stretch"):
             if amt <= 0:
-                st.error("Amount must be greater than 0.")
+                st.error("পরিমাণ ০-এর বেশি হতে হবে।")
             else:
                 add_expense_row(d, cat, desc.strip(), amt, pm)
-                st.toast(f"Saved {tk(amt)} · {desc or cat}")
+                st.toast(f"সেভ হয়েছে {tk(amt)} · {desc or cat}")
 
-    st.subheader("Recent")
+    st.subheader("সাম্প্রতিক")
     recent = load_expenses().head(6)
     panel(tx_rows(recent))
 
@@ -618,7 +636,7 @@ def set_state(**kw):
         st.session_state[k] = v
 
 
-@st.dialog("Transactions", width="large", on_dismiss=reset_table)
+@st.dialog("লেনদেন", width="large", on_dismiss=reset_table)
 def day_dialog(day):
     tx = expenses_on(day)
     if msg := st.session_state.pop("dlg_flash", None):
@@ -635,25 +653,25 @@ def day_dialog(day):
     st.markdown(f"""
     <div class="hero" style="padding:20px 26px">
       <div style="z-index:1">
-        <div class="lbl">{day:%d %B %Y} · {day:%A}</div>
+        <div class="lbl">{bn_date(day)} · {bn_day(day)}</div>
         <div class="big">{tk(total)}</div>
-        <div class="chip">{len(tx)} transactions</div>
+        <div class="chip">{len(tx)}টি লেনদেন</div>
       </div>
       <div class="mini">
-        <div><div class="l">Highest</div><div class="v">{hi_txt}</div></div>
-        <div><div class="l">Top category</div><div class="v" style="font-size:1rem">{top_txt}</div></div>
-        <div><div class="l">Mostly paid by</div><div class="v" style="font-size:1rem">{pay_txt}</div></div>
+        <div><div class="l">সর্বোচ্চ</div><div class="v">{hi_txt}</div></div>
+        <div><div class="l">শীর্ষ ক্যাটাগরি</div><div class="v" style="font-size:1rem">{top_txt}</div></div>
+        <div><div class="l">বেশিরভাগ পেমেন্ট</div><div class="v" style="font-size:1rem">{pay_txt}</div></div>
       </div>
     </div>""", unsafe_allow_html=True)
 
     if tx.empty:
-        st.markdown('<div class="panel" style="margin-top:14px"><div class="empty">Ei dine ar kono entry nai.</div></div>',
+        st.markdown('<div class="panel" style="margin-top:14px"><div class="empty">এই দিনে আর কোনো এন্ট্রি নেই।</div></div>',
                     unsafe_allow_html=True)
         return
 
     left, right = st.columns([2, 3], gap="large")
     with left:
-        st.subheader("By category")
+        st.subheader("ক্যাটাগরি অনুযায়ী")
         cat = tx.groupby("category")["amount"].sum().sort_values(ascending=False)
         rows = "".join(
             f'<div class="row"><div class="ico">{CAT_ICON.get(n, "•")}</div>'
@@ -666,29 +684,29 @@ def day_dialog(day):
     with right:
         cats, pms = categories(), payments()
         edit_id, del_id = st.session_state.get("edit_id"), st.session_state.get("del_id")
-        st.subheader("Transactions")
+        st.subheader("লেনদেন")
         with st.container(border=True, key="day_dlg"):
             for r in tx.to_dict("records"):
                 rid = int(r["id"])
                 if rid == edit_id:
                     with st.form(f"f{rid}", border=False):
                         c1, c2 = st.columns(2)
-                        amt = c1.number_input(f"Amount ({CURRENCY})", min_value=1.0,
+                        amt = c1.number_input(f"পরিমাণ ({CURRENCY})", min_value=1.0,
                                               value=float(r["amount"]), step=10.0, format="%.0f")
-                        d = c2.date_input("Date", pd.Timestamp(r["date"]).date())
-                        cat = c1.selectbox("Category", cats,
+                        d = c2.date_input("তারিখ", pd.Timestamp(r["date"]).date())
+                        cat = c1.selectbox("ক্যাটাগরি", cats,
                                            index=cats.index(r["category"]) if r["category"] in cats else 0,
                                            format_func=lambda n: f"{CAT_ICON.get(n, '•')}  {n}")
-                        pm = c2.selectbox("Payment method", pms,
+                        pm = c2.selectbox("পেমেন্ট মাধ্যম", pms,
                                           index=pms.index(r["payment_method"]) if r["payment_method"] in pms else 0)
-                        desc = st.text_area("Description", r["description"] or "", height=90)
+                        desc = st.text_area("বিবরণ", r["description"] or "", height=90)
                         b1, b2 = st.columns(2)
-                        if b1.form_submit_button("Cancel", width="stretch"):
+                        if b1.form_submit_button("বাতিল", width="stretch"):
                             set_state(edit_id=None)
                             st.rerun(scope="fragment")
-                        if b2.form_submit_button("Save", type="primary", width="stretch"):
+                        if b2.form_submit_button("সেভ", type="primary", width="stretch"):
                             update_expense_row(rid, d, cat, desc.strip(), amt, pm)
-                            set_state(edit_id=None, dlg_flash="Updated ✓")
+                            set_state(edit_id=None, dlg_flash="আপডেট হয়েছে ✓")
                             st.rerun(scope="fragment")
                     continue
 
@@ -700,22 +718,22 @@ def day_dialog(day):
                     f'<div class="d">{r["category"]} · {r["payment_method"]}</div></div></div>',
                     unsafe_allow_html=True)
                 if rid == del_id:
-                    cols[1].markdown('<div class="d" style="text-align:right;color:#DC2626">Delete?</div>',
+                    cols[1].markdown('<div class="d" style="text-align:right;color:#DC2626">মুছবেন?</div>',
                                      unsafe_allow_html=True)
-                    if cols[2].button("✓", key=f"y{rid}", type="tertiary", help="Yes, delete"):
+                    if cols[2].button("✓", key=f"y{rid}", type="tertiary", help="হ্যাঁ, মুছুন"):
                         delete_expense_row(rid)
-                        set_state(del_id=None, dlg_flash="Deleted ✓")
+                        set_state(del_id=None, dlg_flash="মুছে ফেলা হয়েছে ✓")
                         st.rerun(scope="fragment")
-                    if cols[3].button("✕", key=f"n{rid}", type="tertiary", help="Cancel"):
+                    if cols[3].button("✕", key=f"n{rid}", type="tertiary", help="বাতিল"):
                         set_state(del_id=None)
                         st.rerun(scope="fragment")
                 else:
                     cols[1].markdown(f'<div class="amt" style="text-align:right">{tk(r["amount"])}</div>',
                                      unsafe_allow_html=True)
-                    if cols[2].button("✎", key=f"e{rid}", type="tertiary", help="Edit"):
+                    if cols[2].button("✎", key=f"e{rid}", type="tertiary", help="এডিট"):
                         set_state(edit_id=rid, del_id=None)
                         st.rerun(scope="fragment")
-                    if cols[3].button("🗑", key=f"d{rid}", type="tertiary", help="Delete"):
+                    if cols[3].button("🗑", key=f"d{rid}", type="tertiary", help="মুছুন"):
                         set_state(del_id=rid, edit_id=None)
                         st.rerun(scope="fragment")
 
@@ -724,18 +742,18 @@ def all_expenses():
     df = load_expenses()
 
     h1, h2 = st.columns([3, 1], vertical_alignment="center")
-    h1.title("Expenses")
+    h1.title("সব খরচ")
     if df.empty:
-        st.markdown('<div class="panel"><div class="empty">No expenses yet.</div></div>',
+        st.markdown('<div class="panel"><div class="empty">এখনো কোনো খরচ নেই।</div></div>',
                     unsafe_allow_html=True)
         return
 
     fbox = st.container(border=True, key="filterbox")
     c1, c2, c3, c4 = fbox.columns([2.2, 2, 2, 2.6])
-    dr = c1.date_input("Date range", (df["date"].min().date(), df["date"].max().date()))
-    cats = c2.multiselect("Category", categories(), placeholder="All")
-    pmf = c3.multiselect("Payment", payments(), placeholder="All")
-    search = c4.text_input("Search", placeholder="🔍  Search description")
+    dr = c1.date_input("তারিখের সীমা", (df["date"].min().date(), df["date"].max().date()))
+    cats = c2.multiselect("ক্যাটাগরি", categories(), placeholder="সব")
+    pmf = c3.multiselect("পেমেন্ট", payments(), placeholder="সব")
+    search = c4.text_input("খুঁজুন", placeholder="🔍  বিবরণে খুঁজুন")
 
     f = df
     if isinstance(dr, tuple) and len(dr) == 2:
@@ -748,7 +766,7 @@ def all_expenses():
         f = f[f["description"].fillna("").str.contains(search, case=False, regex=False)]
 
     export = f.assign(date=f["date"].dt.date).drop(columns=["created_at"], errors="ignore")
-    h2.download_button("⬇  Export CSV", export.to_csv(index=False).encode("utf-8-sig"),
+    h2.download_button("⬇  CSV এক্সপোর্ট", export.to_csv(index=False).encode("utf-8-sig"),
                        "expenses.csv", "text/csv", width="stretch")
 
     days = (f.groupby(f["date"].dt.date)
@@ -756,33 +774,33 @@ def all_expenses():
              .sort_index(ascending=False).reset_index())
     st.markdown(f"""
     <div class="stats">
-      <div><div class="l">Days</div><div class="v">{len(days)}</div></div>
-      <div><div class="l">Entries</div><div class="v">{len(f)}</div></div>
-      <div><div class="l">Total</div><div class="v g">{tk(f['amount'].sum())}</div></div>
-      <div><div class="l">Per day avg</div><div class="v">{tk(days['total'].mean() if len(days) else 0)}</div></div>
+      <div><div class="l">দিন</div><div class="v">{len(days)}</div></div>
+      <div><div class="l">এন্ট্রি</div><div class="v">{len(f)}</div></div>
+      <div><div class="l">মোট</div><div class="v g">{tk(f['amount'].sum())}</div></div>
+      <div><div class="l">দৈনিক গড়</div><div class="v">{tk(days['total'].mean() if len(days) else 0)}</div></div>
     </div>""", unsafe_allow_html=True)
-    st.caption("Je kono tarikh e click korle oi diner shob transaction khulbe — sekhan theke edit ba delete koro.")
+    st.caption("যেকোনো তারিখে ক্লিক করলে সেই দিনের সব লেনদেন খুলবে — সেখান থেকে এডিট বা মুছে ফেলতে পারবেন।")
 
     if days.empty:
-        st.markdown('<div class="panel"><div class="empty">Kono entry pawa jay nai.</div></div>',
+        st.markdown('<div class="panel"><div class="empty">কোনো এন্ট্রি পাওয়া যায়নি।</div></div>',
                     unsafe_allow_html=True)
         return
 
     view = pd.DataFrame({
-        "Date": pd.to_datetime(days["date"]).dt.strftime("%d %B %Y"),
-        "Day": pd.to_datetime(days["date"]).dt.strftime("%A"),
-        "Entries": days["entries"],
-        "Amount": days["total"],
+        "তারিখ": days["date"].map(bn_date),
+        "বার": days["date"].map(bn_day),
+        "এন্ট্রি": days["entries"],
+        "পরিমাণ": days["total"],
     })
     event = st.container(border=True, key="daytable").dataframe(
         view, hide_index=True, width="stretch", height=min(35 * len(view) + 38, 600),
         on_select="rerun", selection_mode="single-cell",
         key=f"day_table_{st.session_state.get('tbl_v', 0)}",
         column_config={
-            "Date": st.column_config.TextColumn(width="medium"),
-            "Day": st.column_config.TextColumn(width="medium"),
-            "Entries": st.column_config.NumberColumn(width="small"),
-            "Amount": st.column_config.NumberColumn(format="৳ %,.0f", width="medium"),
+            "তারিখ": st.column_config.TextColumn(width="medium"),
+            "বার": st.column_config.TextColumn(width="medium"),
+            "এন্ট্রি": st.column_config.NumberColumn(width="small"),
+            "পরিমাণ": st.column_config.NumberColumn(format="৳ %,.0f", width="medium"),
         })
 
     sel = event.selection
@@ -798,47 +816,47 @@ def all_expenses():
 
 # ---------------------------------------------------------------- settings
 def settings():
-    st.title("Settings")
-    src = "☁️ Supabase" if USE_SUPABASE else "💾 Local (expenses.db)"
+    st.title("সেটিংস")
+    src = "☁️ Supabase" if USE_SUPABASE else "💾 লোকাল (expenses.db)"
     st.markdown(f'<div class="chip" style="background:{MINT};color:{GREEN};margin:0 0 .4rem">'
-                f'Database: {src}</div>', unsafe_allow_html=True)
+                f'ডাটাবেস: {src}</div>', unsafe_allow_html=True)
 
-    st.subheader("Monthly budgets")
-    st.caption("Leave 0 to skip a category.")
+    st.subheader("মাসিক বাজেট")
+    st.caption("যে ক্যাটাগরির বাজেট লাগবে না, সেখানে ০ রাখুন।")
     b = category_table().rename(columns={"name": "category"})
     eb = st.data_editor(b, hide_index=True, width="stretch", disabled=["category"],
-                        column_config={"category": "Category",
+                        column_config={"category": "ক্যাটাগরি",
                                        "monthly_budget": st.column_config.NumberColumn(
-                                           f"Budget ({CURRENCY})", min_value=0, step=500)})
-    if st.button("Save budgets", type="primary"):
+                                           f"বাজেট ({CURRENCY})", min_value=0, step=500)})
+    if st.button("বাজেট সেভ করুন", type="primary"):
         old = dict(zip(b["category"], b["monthly_budget"]))
         for r in eb.itertuples():
             new_val = float(r.monthly_budget or 0)
             if new_val != old.get(r.category):
                 set_budget(r.category, new_val)
         category_table.clear()
-        st.toast("Budgets saved")
+        st.toast("বাজেট সেভ হয়েছে")
 
-    st.subheader("Add new")
+    st.subheader("নতুন যোগ করুন")
     c1, c2 = st.columns(2)
-    nc = c1.text_input("Category")
-    if c1.button("Add category") and nc.strip():
+    nc = c1.text_input("নতুন ক্যাটাগরি")
+    if c1.button("ক্যাটাগরি যোগ করুন") and nc.strip():
         add_category(nc.strip())
-        st.toast(f"Added {nc}")
-    npm = c2.text_input("Payment method")
-    if c2.button("Add payment method") and npm.strip():
+        st.toast(f"যোগ হয়েছে: {nc}")
+    npm = c2.text_input("নতুন পেমেন্ট মাধ্যম")
+    if c2.button("পেমেন্ট মাধ্যম যোগ করুন") and npm.strip():
         add_payment(npm.strip())
-        st.toast(f"Added {npm}")
+        st.toast(f"যোগ হয়েছে: {npm}")
 
-    st.subheader("Backup")
+    st.subheader("ব্যাকআপ")
     all_df = load_expenses()
     backup = all_df.assign(date=all_df["date"].dt.date).to_csv(index=False).encode("utf-8-sig")
     c1, c2, _ = st.columns([1, 1, 2])
-    c1.download_button("⬇  All expenses (CSV)", backup, f"expenses-backup-{bd_today()}.csv",
+    c1.download_button("⬇  সব খরচ (CSV)", backup, f"expenses-backup-{bd_today()}.csv",
                        "text/csv", width="stretch")
     if not USE_SUPABASE and DB_PATH.exists():
         c2.download_button("⬇  expenses.db", DB_PATH.read_bytes(), "expenses.db", width="stretch")
-    if c2.button("↻  Refresh data", width="stretch") if USE_SUPABASE else False:
+    if c2.button("↻  ডাটা রিফ্রেশ", width="stretch") if USE_SUPABASE else False:
         _changed()
         st.rerun()
 
