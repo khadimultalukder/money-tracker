@@ -482,11 +482,14 @@ div[data-testid="stDataFrame"], div[data-testid="stDataEditor"] {{border-radius:
 """, unsafe_allow_html=True)
 
 PAGES = ["Dashboard", "Add expense", "Expenses", "Settings"]
+PAGE_LABELS = {"Dashboard": "ড্যাশবোর্ড", "Add expense": "খরচ যোগ করুন",
+               "Expenses": "সব খরচ", "Settings": "সেটিংস"}
 n1, n2 = st.columns([1, 2], vertical_alignment="center")
 n1.markdown(f'<div class="brand"><div class="logo">৳</div>{APP_NAME}'
             f'<span class="src">{"☁️ Supabase" if USE_SUPABASE else "💾 Local"}</span></div>',
             unsafe_allow_html=True)
 page = n2.segmented_control("nav", PAGES, default="Dashboard", key="page",
+                            format_func=lambda p: PAGE_LABELS.get(p, p),
                             label_visibility="collapsed") or "Dashboard"
 st.markdown('<div class="navgap"></div>', unsafe_allow_html=True)
 
