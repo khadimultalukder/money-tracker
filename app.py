@@ -326,7 +326,8 @@ def bn_day(d):
 
 
 # ---------------------------------------------------------------- styling
-st.set_page_config(page_title=APP_NAME, page_icon="●", layout="wide",
+FAVICON = Path(__file__).with_name("favicon.png")
+st.set_page_config(page_title=APP_NAME, page_icon=str(FAVICON) if FAVICON.exists() else "৳", layout="wide",
                    initial_sidebar_state="collapsed")
 
 
